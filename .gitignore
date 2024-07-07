@@ -1,0 +1,10 @@
+﻿/.idea/
+TradeTool.sln.DotSettings.user
+*.suo
+*.user
+.vs/
+[Bb]in/
+[Oo]bj/
+
+Thumbs.db
+Desktop.ini
