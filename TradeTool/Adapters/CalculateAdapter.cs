@@ -1,6 +1,6 @@
-﻿using ConsoleApp1.Configuration;
+﻿using TradeTool.Configuration;
+using TradeTool.Requests.Binance;
 using TradeTool.Domain;
-using TradeTool.Requests;
 
 namespace TradeTool.Adapters;
 
@@ -11,12 +11,12 @@ public interface ICalculateAdapter
 
 public class CalculateAdapter: ICalculateAdapter
 {
-    private readonly IGetOrderBokRequest _getOrderBokRequest;
+    private readonly IGetOrderBookRequest _getOrderBookRequest;
     private readonly TradeConfig _config;
     
-    public CalculateAdapter(IGetOrderBokRequest getOrderBokRequest, TradeConfig config)
+    public CalculateAdapter(IGetOrderBookRequest getOrderBookRequest, TradeConfig config)
     {
-        _getOrderBokRequest = getOrderBokRequest ?? throw new ArgumentNullException(nameof(getOrderBokRequest));
+        _getOrderBookRequest = getOrderBookRequest ?? throw new ArgumentNullException(nameof(getOrderBookRequest));
         _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
@@ -31,17 +31,14 @@ public class CalculateAdapter: ICalculateAdapter
             return 0m;
         }
         var isBuy = inputQuantity > 0;
-        
-        
         var quantity = Math.Abs(inputQuantity);
-
         var orders = await GetOrdersAsync(instrument, isBuy, 5000);
         return GetPrice(orders, quantity, isBuy);
     }
 
     private async Task<List<Order>> GetOrdersAsync(string instrument, bool isBuy, int limit)
     {
-        var book = await _getOrderBokRequest.ExecuteAsync(instrument, limit);
+        var book = await _getOrderBookRequest.ExecuteAsync(instrument, limit);
         List<Order> orders;
             
         if(isBuy)
@@ -53,13 +50,11 @@ public class CalculateAdapter: ICalculateAdapter
             orders = book.BuyOrders.OrderByDescending(it => it.Price).ToList();
         }
 
-        DisplayVerbose($"To {operationType(isBuy)} {instrument} are prices from " +
+        DisplayVerbose($"To {OperationType(isBuy)} {instrument} are prices from " +
             $"{orders.First().Price} ({orders.First().Amount}) to {orders.Last().Price} ({orders.Last().Amount}).");
 
         return orders;
     } 
-    
-    private string operationType (bool isBuy) => isBuy ? "buy" : "sell";
 
     private void DisplayVerbose(string message)
     {
@@ -75,21 +70,20 @@ public class CalculateAdapter: ICalculateAdapter
             if (quantity == 0)
             {
                 DisplayVerbose("All the positions are calculated");
-                
                 break;
             };
             
             if (quantity < order.Amount)
             {
                 DisplayVerbose($"Order price {order.Price}, amount {order.Amount}" +
-                    $" ({order.Price * quantity} in sum), left to {operationType(isBuy)} {quantity}.");
+                    $" ({order.Price * quantity} in sum), left to {OperationType(isBuy)} {quantity}.");
                 price += order.Price * quantity;
                 quantity = 0;
             }
             else
             {
                 DisplayVerbose($"Order price {order.Price}, amount {order.Amount}" +
-                    $" ({order.Price * order.Amount} in sum), left to {operationType(isBuy)} {quantity}.");
+                    $" ({order.Price * order.Amount} in sum), left to {OperationType(isBuy)} {quantity}.");
                 price += order.Price * order.Amount;
                 quantity -= order.Amount;
             }
@@ -97,4 +91,6 @@ public class CalculateAdapter: ICalculateAdapter
 
         return price;
     }
+    
+    private static string OperationType (bool isBuy) => isBuy ? "buy" : "sell";
 }

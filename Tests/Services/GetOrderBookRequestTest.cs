@@ -1,12 +1,12 @@
-using ConsoleApp1.Configuration;
+using TradeTool.Configuration;
+using TradeTool.Requests.Binance;
 using TradeTool.Domain;
-using TradeTool.Requests;
 using TradeTool.Services;
 using Moq;
 
 namespace Tests.Services;
 
-public class GetOrderBokRequestTest
+public class GetOrderBookRequestTest
 {
     [Fact]
     public void ExecuteReturnsBook()
@@ -14,10 +14,11 @@ public class GetOrderBokRequestTest
         //Arrange
         var config = new BinanceConfig();
         var clientMock = new Mock<IWebClient>();
-        clientMock.Setup(it => it.GetAsync("https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000"))
+        clientMock.Setup(it => it.GetAsync("https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000",
+                It.IsAny<Action<HttpResponseMessage>>()))
             .ReturnsAsync(BinanceApiResponses.DepthBtcUsdt);
         
-        var request = new GetOrderBokRequest(clientMock.Object, config);
+        var request = new GetOrderBookRequest(clientMock.Object, config);
         
         //Act
         var book = request.ExecuteAsync("BTCUSDT").Result;

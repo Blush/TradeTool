@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>ConsoleApp1</RootNamespace>
+        <Company>Dmitrii Gavrilov 2024 blush.post@gmail.com</Company>
     </PropertyGroup>
 
     <ItemGroup>

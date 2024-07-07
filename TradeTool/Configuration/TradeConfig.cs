@@ -1,4 +1,4 @@
-﻿namespace ConsoleApp1.Configuration;
+﻿namespace TradeTool.Configuration;
 
 public class TradeConfig
 {

@@ -1,24 +1,24 @@
 ﻿using System.Text.Json;
-using ConsoleApp1.Configuration;
+using TradeTool.Configuration;
 using TradeTool.Services;
 
-namespace TradeTool.Requests;
+namespace TradeTool.Requests.Binance;
 
-public abstract class BinanceRequestBase
+public abstract class RequestBase
 {
     private string BaseUrl;
     private readonly IWebClient Client;
 
-    protected BinanceRequestBase(IWebClient client, BinanceConfig config)
+    protected RequestBase(IWebClient client, BinanceConfig config)
     {
         Client = client ?? throw new ArgumentNullException(nameof(client));
         BaseUrl = config.ApiUrl;
     }
 
-    protected async Task<T> GetAsync<T>(string endpoint)
+    protected async Task<T> GetAsync<T>(string endpoint, Action<HttpResponseMessage> responseStatusHandler = null)
     {
         var url = $"{BaseUrl}/{endpoint}";
-        var body = await Client.GetAsync(url);
+        var body = await Client.GetAsync(url, responseStatusHandler);
         return JsonSerializer.Deserialize<T>(body);
     }
 }

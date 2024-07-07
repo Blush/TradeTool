@@ -1,25 +1,28 @@
-﻿using ConsoleApp1.Configuration;
+﻿using System.Net;
+using System.Text.Json;
+using TradeTool.Configuration;
 using TradeTool.Domain;
 using TradeTool.Services;
 
-namespace TradeTool.Requests;
+namespace TradeTool.Requests.Binance;
 
-public interface IGetOrderBokRequest
+public interface IGetOrderBookRequest
 {
     Task<OrderBook> ExecuteAsync(string instrument, int limit = 1000);
 }
 
-public class GetOrderBokRequest: BinanceRequestBase, IGetOrderBokRequest
+public class GetOrderBookRequest: RequestBase, IGetOrderBookRequest
 {
     
-    public GetOrderBokRequest(IWebClient client, BinanceConfig config) : base(client, config)
+    public GetOrderBookRequest(IWebClient client, BinanceConfig config) : base(client, config)
     {
     }
     
     public async Task<OrderBook> ExecuteAsync(string instrument, int limit = 1000)
     {
         var endpoint = $"depth?symbol={instrument}&limit={limit}";
-        var orderBook = await GetAsync<BinanceOrderBook>(endpoint);
+        var orderBook = await GetAsync<BinanceOrderBook>(endpoint, HandleResponseStatus);  
+        
         var book = new OrderBook()
         {
             BuyOrders = orderBook.bids.Select(x => new Order()
@@ -34,6 +37,16 @@ public class GetOrderBokRequest: BinanceRequestBase, IGetOrderBokRequest
             })
         };
         return book;
+    }
+    
+    private void HandleResponseStatus(HttpResponseMessage response)
+    {
+        if(response.StatusCode != HttpStatusCode.OK)
+        {
+            var content = response.Content.ReadAsStringAsync().Result;
+            var error = JsonSerializer.Deserialize<BinanceErrorMessage>(content);
+            throw new ResponseException($"Error happened during the orders book request: {error.msg}");
+        }
     }
 }
 

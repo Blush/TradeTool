@@ -1,15 +1,15 @@
 ﻿using System.Runtime.CompilerServices;
-using ConsoleApp1.Configuration;
+using TradeTool.Configuration;
+using TradeTool.Requests.Binance;
 using Moq;
 using TradeTool.Adapters;
 using TradeTool.Domain;
-using TradeTool.Requests;
 
 namespace Tests.Adapters;
 
 public class CalculateAdapterTest
 {
-    private readonly Mock<IGetOrderBokRequest> _request = new Mock<IGetOrderBokRequest>();
+    private readonly Mock<IGetOrderBookRequest> _request = new Mock<IGetOrderBookRequest>();
 
     [Fact]
     public void GetMarketPriceAsync_ReturnsZero_WhenQuantityZero()
@@ -37,7 +37,7 @@ public class CalculateAdapterTest
     public async Task GetMarketPriceAsync_ShouldReturnExpectedPrice(string instrument, decimal quantity, decimal expectedPrice)
     {
         // Arrange
-        var mockOrderBookRequest = new Mock<IGetOrderBokRequest>();
+        var mockOrderBookRequest = new Mock<IGetOrderBookRequest>();
         mockOrderBookRequest.Setup(m => m.ExecuteAsync(instrument, It.IsAny<int>()))
             .ReturnsAsync(GetSampleOrderBook(instrument));
         var calculateAdapter = new CalculateAdapter(mockOrderBookRequest.Object, new TradeConfig());
